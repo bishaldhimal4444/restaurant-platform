@@ -1,0 +1,47 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: restaurant-platform-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: restaurant_platform
+      POSTGRES_USER: restaurant_app
+      POSTGRES_PASSWORD: restaurant_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - restaurant_postgres_data:/var/lib/postgresql/data
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: restaurant-platform-backend
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: dev-only-secret-change-this-in-production-abc123xyz
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://restaurant_app:restaurant_dev_password@postgres:5432/restaurant_platform?schema=public
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: restaurant-platform-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://backend:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      
+volumes:
+  restaurant_postgres_data:
