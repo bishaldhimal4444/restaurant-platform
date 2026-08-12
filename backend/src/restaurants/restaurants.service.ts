@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
@@ -7,53 +7,27 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 export class RestaurantsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(ownerId: string, dto: CreateRestaurantDto) {
-    const existing = await this.prisma.restaurant.findUnique({ where: { ownerId } });
+  async create(dto: CreateRestaurantDto) {
+    const existing = await this.prisma.restaurant.findFirst();
     if (existing) {
-      throw new ConflictException('You already own a restaurant');
+      throw new ConflictException('A restaurant already exists');
     }
-
-    return this.prisma.restaurant.create({
-      data: { ...dto, ownerId },
-    });
+    return this.prisma.restaurant.create({ data: dto });
   }
 
-  async findAll() {
-    return this.prisma.restaurant.findMany({
-      include: { menuItems: { where: { isAvailable: true } } },
-    });
-  }
-
-  async findOne(id: string) {
-    const restaurant = await this.prisma.restaurant.findUnique({
-      where: { id },
-      include: { menuItems: true },
-    });
+  async getTheRestaurant() {
+    const restaurant = await this.prisma.restaurant.findFirst();
     if (!restaurant) {
-      throw new NotFoundException('Restaurant not found');
+      throw new NotFoundException('No restaurant has been set up yet');
     }
     return restaurant;
   }
 
-  async update(id: string, userId: string, dto: UpdateRestaurantDto) {
-    await this.assertOwnership(id, userId);
-    return this.prisma.restaurant.update({ where: { id }, data: dto });
-  }
-
-  async remove(id: string, userId: string) {
-    await this.assertOwnership(id, userId);
-    await this.prisma.restaurant.delete({ where: { id } });
-    return { deleted: true };
-  }
-
-  private async assertOwnership(restaurantId: string, userId: string) {
-    const restaurant = await this.prisma.restaurant.findUnique({ where: { id: restaurantId } });
-    if (!restaurant) {
-      throw new NotFoundException('Restaurant not found');
-    }
-    if (restaurant.ownerId !== userId) {
-      throw new ForbiddenException('You do not own this restaurant');
-    }
-    return restaurant;
+  async update(dto: UpdateRestaurantDto) {
+    const restaurant = await this.getTheRestaurant();
+    return this.prisma.restaurant.update({
+      where: { id: restaurant.id },
+      data: dto,
+    });
   }
 }

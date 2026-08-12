@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsArray, IsInt, IsString, IsUUID, Min, ValidateNested, ArrayMinSize } from 'class-validator';
+import { IsArray, IsInt, IsUUID, Min, ValidateNested, ArrayMinSize } from 'class-validator';
 
 class OrderItemInput {
   @IsUUID()
@@ -12,7 +12,7 @@ class OrderItemInput {
 
 export class CreateOrderDto {
   @IsUUID()
-  restaurantId: string;
+  tableSessionId: string;
 
   @IsArray()
   @ArrayMinSize(1)

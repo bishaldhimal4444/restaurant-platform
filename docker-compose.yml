@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
     environment:
       JWT_SECRET: dev-only-secret-change-this-in-production-abc123xyz
+      QR_SECRET: dev-only-qr-secret-change-in-production-xyz789
       NODE_ENV: development
       PORT: 4000
       DATABASE_URL: postgresql://restaurant_app:restaurant_dev_password@postgres:5432/restaurant_platform?schema=public

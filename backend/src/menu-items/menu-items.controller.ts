@@ -1,65 +1,44 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Delete, Param, UseGuards } from '@nestjs/common';
 import { MenuItemsService } from './menu-items.service';
 import { CreateMenuItemDto } from './dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu-item.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 
-interface AuthedRequest {
-  user: { userId: string; email: string; role: string };
-}
-
-@Controller('restaurants/:restaurantId/menu-items')
+@Controller('menu-items')
 export class MenuItemsController {
   constructor(private readonly menuItemsService: MenuItemsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
   @Post()
-  create(
-    @Param('restaurantId') restaurantId: string,
-    @Request() req: AuthedRequest,
-    @Body() dto: CreateMenuItemDto,
-  ) {
-    return this.menuItemsService.create(restaurantId, req.user.userId, dto);
+  create(@Body() dto: CreateMenuItemDto) {
+    return this.menuItemsService.create(dto);
   }
 
   @Get()
-  findAll(@Param('restaurantId') restaurantId: string) {
-    return this.menuItemsService.findAllForRestaurant(restaurantId);
+  findAll() {
+    return this.menuItemsService.findAll();
   }
-}
-
-@Controller('menu-items')
-export class MenuItemDetailController {
-  constructor(private readonly menuItemsService: MenuItemsService) {}
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.menuItemsService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Request() req: AuthedRequest,
-    @Body() dto: UpdateMenuItemDto,
-  ) {
-    return this.menuItemsService.update(id, req.user.userId, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateMenuItemDto) {
+    return this.menuItemsService.update(id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
   @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: AuthedRequest) {
-    return this.menuItemsService.remove(id, req.user.userId);
+  remove(@Param('id') id: string) {
+    return this.menuItemsService.remove(id);
   }
 }

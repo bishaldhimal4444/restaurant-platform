@@ -9,6 +9,10 @@ export class CreateMenuItemDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  ingredients?: string;
+
   @IsNumber()
   @Min(0)
   price: number;

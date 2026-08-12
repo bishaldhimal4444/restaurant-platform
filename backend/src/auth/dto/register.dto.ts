@@ -13,6 +13,6 @@ export class RegisterDto {
   password: string;
 
   @IsOptional()
-  @IsIn(['CUSTOMER', 'OWNER'])
-  role?: 'CUSTOMER' | 'OWNER';
+  @IsIn(['ADMIN', 'OWNER'])
+  role?: 'ADMIN' | 'OWNER';
 }

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,32 +11,48 @@ datasource db {
 enum Role {
   ADMIN
   OWNER
-  STAFF
-  CUSTOMER
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+}
+
+enum SessionStatus {
+  PENDING
+  ACTIVE
+  BILLED
+  CLOSED
 }
 
 enum OrderStatus {
   PENDING
-  CONFIRMED
   PREPARING
   READY
-  COMPLETED
+  SERVED
   CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+}
+
+enum BillStatus {
+  UNPAID
+  PAID
 }
 
 // ── Core models ──────────────────────────────────────────
 
 model User {
-  id         String      @id @default(uuid())
-  email      String      @unique
-  name       String
-  password   String
-  role       Role        @default(CUSTOMER)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-
-  orders     Order[]
-  restaurant Restaurant? @relation("RestaurantOwner")
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(OWNER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Restaurant {
@@ -48,47 +61,67 @@ model Restaurant {
   description String?
   address     String
   phone       String?
-  ownerId     String   @unique
-  owner       User     @relation("RestaurantOwner", fields: [ownerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  menuItems   MenuItem[]
-  orders      Order[]
+  tables    Table[]
+  menuItems MenuItem[]
+}
+
+model Table {
+  id           String         @id @default(uuid())
+  number       Int
+  capacity     Int
+  status       TableStatus    @default(AVAILABLE)
+  restaurantId String
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id])
+  sessions     TableSession[]
+
+  @@unique([restaurantId, number])
+}
+
+model TableSession {
+  id         String        @id @default(uuid())
+  tableId    String
+  table      Table         @relation(fields: [tableId], references: [id])
+  guestName  String?
+  guestPhone String?
+  guestEmail String?
+  guestToken String?       @unique
+  guestTokenExpiresAt DateTime?
+  status     SessionStatus @default(ACTIVE)
+  startedAt  DateTime      @default(now())
+  endedAt    DateTime?
+
+  orders Order[]
+  bill   Bill?
 }
 
 model MenuItem {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   description  String?
-  price        Decimal  @db.Decimal(10, 2)
+  ingredients  String?
+  price        Decimal    @db.Decimal(10, 2)
   imageUrl     String?
-  isAvailable  Boolean  @default(true)
+  isAvailable  Boolean    @default(true)
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  orderItems   OrderItem[]
-
-  @@index([restaurantId])
+  orderItems OrderItem[]
 }
 
 model Order {
-  id           String      @id @default(uuid())
-  status       OrderStatus @default(PENDING)
-  totalAmount  Decimal     @db.Decimal(10, 2)
-  customerId   String
-  customer     User        @relation(fields: [customerId], references: [id])
-  restaurantId String
-  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id             String       @id @default(uuid())
+  status         OrderStatus  @default(PENDING)
+  tableSessionId String
+  tableSession   TableSession @relation(fields: [tableSessionId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  items        OrderItem[]
-
-  @@index([customerId])
-  @@index([restaurantId])
+  items OrderItem[]
 }
 
 model OrderItem {
@@ -99,6 +132,15 @@ model OrderItem {
   menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
   quantity   Int      @default(1)
   unitPrice  Decimal  @db.Decimal(10, 2)
+}
 
-  @@index([orderId])
+model Bill {
+  id             String         @id @default(uuid())
+  tableSessionId String         @unique
+  tableSession   TableSession   @relation(fields: [tableSessionId], references: [id])
+  totalAmount    Decimal        @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod?
+  status         BillStatus     @default(UNPAID)
+  createdAt      DateTime       @default(now())
+  paidAt         DateTime?
 }

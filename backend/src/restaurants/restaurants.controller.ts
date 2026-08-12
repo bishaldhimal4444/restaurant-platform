@@ -1,14 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, UseGuards } from '@nestjs/common';
 import { RestaurantsService } from './restaurants.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
@@ -17,44 +7,26 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
 
-interface AuthedRequest {
-  user: { userId: string; email: string; role: string };
-}
-
-@Controller('restaurants')
+@Controller('restaurant')
 export class RestaurantsController {
   constructor(private readonly restaurantsService: RestaurantsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OWNER, Role.ADMIN)
   @Post()
-  create(@Request() req: AuthedRequest, @Body() dto: CreateRestaurantDto) {
-    return this.restaurantsService.create(req.user.userId, dto);
+  create(@Body() dto: CreateRestaurantDto) {
+    return this.restaurantsService.create(dto);
   }
 
   @Get()
-  findAll() {
-    return this.restaurantsService.findAll();
+  findOne() {
+    return this.restaurantsService.getTheRestaurant();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.restaurantsService.findOne(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Request() req: AuthedRequest,
-    @Body() dto: UpdateRestaurantDto,
-  ) {
-    return this.restaurantsService.update(id, req.user.userId, dto);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id') id: string, @Request() req: AuthedRequest) {
-    return this.restaurantsService.remove(id, req.user.userId);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Patch()
+  update(@Body() dto: UpdateRestaurantDto) {
+    return this.restaurantsService.update(dto);
   }
 }

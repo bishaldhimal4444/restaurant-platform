@@ -1,44 +1,40 @@
-import { Body, Controller, Get, Post, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Param, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-interface AuthedRequest {
-  user: { userId: string; email: string; role: string };
-}
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('orders')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.OWNER, Role.ADMIN)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Request() req: AuthedRequest, @Body() dto: CreateOrderDto) {
-    return this.ordersService.create(req.user.userId, dto);
+  create(@Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto);
   }
 
-  @Get('mine')
-  findMine(@Request() req: AuthedRequest) {
-    return this.ordersService.findMineAsCustomer(req.user.userId);
+  @Get()
+  findAll() {
+    return this.ordersService.findAll();
   }
 
-  @Get('received')
-  findReceived(@Request() req: AuthedRequest) {
-    return this.ordersService.findMineAsOwner(req.user.userId);
+  @Get('active')
+  findActive() {
+    return this.ordersService.findActive();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @Request() req: AuthedRequest) {
-    return this.ordersService.findOne(id, req.user.userId);
+  findOne(@Param('id') id: string) {
+    return this.ordersService.findOne(id);
   }
 
   @Patch(':id/status')
-  updateStatus(
-    @Param('id') id: string,
-    @Request() req: AuthedRequest,
-    @Body() dto: UpdateOrderStatusDto,
-  ) {
-    return this.ordersService.updateStatus(id, req.user.userId, dto);
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+    return this.ordersService.updateStatus(id, dto);
   }
 }
