@@ -1,21 +1,24 @@
-FROM node:24-bookworm-slim AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
 
-FROM base AS development
-COPY . .
-CMD ["npm", "run", "dev"]
+FROM base AS deps
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit --no-fund
 
-FROM base AS build
+FROM deps AS builder
 COPY . .
 RUN npm run build
 
-FROM node:24-bookworm-slim AS production
+FROM node:20-alpine AS runner
 WORKDIR /app
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 ENV NODE_ENV=production
-COPY --from=build /app/public ./public
-COPY --from=build /app/.next/standalone ./
-COPY --from=build /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+USER nextjs
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 CMD ["node", "server.js"]

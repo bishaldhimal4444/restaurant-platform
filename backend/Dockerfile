@@ -1,27 +1,35 @@
-FROM node:24-bookworm-slim AS base
+FROM node:20-alpine AS base
 WORKDIR /app
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache openssl
 COPY package*.json ./
-RUN npm ci
 
-FROM base AS development
-COPY . .
-RUN npx prisma generate
-CMD ["npm", "run", "start:dev"]
+FROM base AS deps
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit --no-fund
 
-FROM base AS build
+FROM deps AS builder
 COPY . .
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:24-bookworm-slim AS production
+FROM deps AS prod-deps
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --omit=dev --prefer-offline --no-audit --no-fund && \
+    npm rebuild bcrypt --build-from-source
+
+FROM node:20-alpine AS runner
 WORKDIR /app
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache openssl && \
+    addgroup -S nodejs && adduser -S nestjs -G nodejs
+ENV NODE_ENV=production
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/generated ./generated
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY package*.json ./
-RUN npm ci --omit=dev
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/generated ./generated
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+USER nestjs
 EXPOSE 4000
-CMD ["npm", "run", "start:prod"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/ || exit 1
+CMD ["node", "dist/main.js"]

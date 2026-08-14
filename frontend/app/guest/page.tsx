@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   listPublicTables,
   requestCheckIn,
+  getGuestSession,
   GuestApiError,
   type PublicTable,
   type GuestSession,
@@ -20,8 +21,6 @@ const GLASS = 'rgba(255,255,255,0.07)';
 const GLASS_BORDER = 'rgba(255,255,255,0.16)';
 const PAPER = '#FBF1E6';
 
-// Frontend-only section mapping: numbers 1-10 = Main Entrance (M1-M10),
-// numbers 11-20 = Rooftop (R1-R10). No backend/schema change needed.
 function getSection(tableNumber: number): 'MAIN' | 'ROOFTOP' | null {
   if (tableNumber >= 1 && tableNumber <= 10) return 'MAIN';
   if (tableNumber >= 11 && tableNumber <= 20) return 'ROOFTOP';
@@ -73,7 +72,7 @@ function VipTableCard({
       style={{
         background: GLASS,
         border: `1px solid ${available ? 'rgba(46,204,113,0.4)' : 'rgba(255,77,77,0.4)'}`,
-        boxShadow: available ? `0 0 24px rgba(46,204,113,0.15)` : `0 0 16px rgba(255,77,77,0.1)`,
+        boxShadow: available ? '0 0 24px rgba(46,204,113,0.15)' : '0 0 16px rgba(255,77,77,0.1)',
       }}
     >
       <div
@@ -159,10 +158,12 @@ export default function GuestLandingPage() {
   const [selectedTable, setSelectedTable] = useState<PublicTable | null>(null);
   const [guestName, setGuestName] = useState('');
   const [guestPhone, setGuestPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
   const [checkInError, setCheckInError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const [, setSession] = useState<GuestSession | null>(null);
+  const [session, setSession] = useState<GuestSession | null>(null);
+  const [polling, setPolling] = useState(false);
 
   const loadTables = useCallback(async () => {
     try {
@@ -183,6 +184,38 @@ export default function GuestLandingPage() {
     return () => clearInterval(interval);
   }, [loadTables, screen]);
 
+  useEffect(() => {
+    if (screen !== 'waiting' || !session) return;
+
+    setPolling(true);
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getGuestSession(session.id);
+        if (updated.status === 'ACTIVE') {
+          setPolling(false);
+          clearInterval(interval);
+          window.location.href = `/guest/session/${updated.id}/menu`;
+        } else if (updated.status === 'CLOSED') {
+          setPolling(false);
+          clearInterval(interval);
+          setScreen('tables');
+          setSelectedTable(null);
+          setGuestName('');
+          setGuestPhone('');
+          setGuestEmail('');
+          setCheckInError('Your request was not confirmed. Please try another table.');
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, 3000);
+
+    return () => {
+      clearInterval(interval);
+      setPolling(false);
+    };
+  }, [screen, session]);
+
   function pickTable(table: PublicTable) {
     if (table.status !== 'AVAILABLE') return;
     setSelectedTable(table);
@@ -199,6 +232,7 @@ export default function GuestLandingPage() {
       const created = await requestCheckIn(selectedTable.id, {
         guestName: guestName.trim() || undefined,
         guestPhone: guestPhone.trim() || undefined,
+        guestEmail: guestEmail.trim() || undefined,
       });
       setSession(created);
       setScreen('waiting');
@@ -229,7 +263,6 @@ export default function GuestLandingPage() {
         <div className="mt-1 text-2xl" style={{ color: GOLD, fontFamily: 'var(--font-accent)', fontStyle: 'italic', fontWeight: 600 }}>
           Legacy Lounge &amp; Bar
         </div>
-
         <p className="mt-5 max-w-xl text-[15px] leading-relaxed" style={{ color: 'rgba(251,241,230,0.75)' }}>
           Signature cocktails, rooftop views, and late-night dance parties above New
           Baneswor. Perfect for birthdays, anniversaries, or a Friday worth
@@ -313,6 +346,19 @@ export default function GuestLandingPage() {
                 placeholder="Your phone number"
               />
             </div>
+            <div>
+              <label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'var(--font-mono-ticket)' }}>
+                Email (optional)
+              </label>
+              <input
+                type="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                className="w-full rounded-lg px-3 py-2.5 text-[15px] outline-none"
+                style={{ background: 'rgba(255,255,255,0.08)', border: `1px solid ${GLASS_BORDER}`, color: PAPER }}
+                placeholder="your@email.com"
+              />
+            </div>
 
             {checkInError && (
               <p className="text-sm" style={{ color: PINK }}>
@@ -348,6 +394,7 @@ export default function GuestLandingPage() {
           We&apos;ve let the staff know you&apos;re at Table {label}.
           Hang tight while they confirm your check-in.
         </p>
+        {polling && <p className="mt-2 text-xs text-zinc-500">Checking for confirmation…</p>}
         <div className="mt-8 text-xs uppercase tracking-widest" style={{ color: TEAL, fontFamily: 'var(--font-mono-ticket)' }}>
           Waiting for confirmation…
         </div>

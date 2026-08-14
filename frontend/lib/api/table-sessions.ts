@@ -27,3 +27,21 @@ export function closeSession(token: string, id: string) {
     token,
   });
 }
+
+export function getPendingSessions(token: string) {
+  return apiFetch<(TableSession & { table: Table })[]>(`/table-sessions/pending`, { token });
+}
+
+export function confirmSession(token: string, id: string) {
+  return apiFetch<TableSession>(`/table-sessions/${id}/confirm`, {
+    method: 'POST',
+    token,
+  });
+}
+
+export function rejectSession(token: string, id: string) {
+  return apiFetch<TableSession>(`/table-sessions/${id}/reject`, {
+    method: 'POST',
+    token,
+  });
+}

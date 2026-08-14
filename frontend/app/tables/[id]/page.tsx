@@ -4,6 +4,7 @@ import { getTable } from '../../../lib/api/table-sessions';
 import { listMenuItems } from '../../../lib/api/menu-items';
 import { SeatGuestsForm } from './seat-guests-form';
 import { CloseSessionButton } from './close-session-button';
+import { ConfirmRejectButtons } from './confirm-reject-buttons';
 import { OrderForm } from './order-form';
 
 export default async function TableDetailPage({
@@ -27,20 +28,43 @@ export default async function TableDetailPage({
 
       {activeSession ? (
         <div className="flex flex-col gap-6">
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950">
-            <p className="mb-1 text-sm font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
-              Occupied
-            </p>
-            {activeSession.guestName && <p className="text-lg">{activeSession.guestName}</p>}
-            <p className="mt-1 text-sm text-zinc-500">
-              Seated at {new Date(activeSession.startedAt).toLocaleTimeString()}
-            </p>
-            <div className="mt-4">
-              <CloseSessionButton tableId={table.id} sessionId={activeSession.id} />
+          {activeSession.status === 'PENDING' ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950">
+              <p className="mb-1 text-sm font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                Table Requested
+              </p>
+              {activeSession.guestName && <p className="text-lg">{activeSession.guestName}</p>}
+              <p className="mt-1 text-sm text-zinc-500">
+                Phone: {activeSession.guestPhone || '—'}
+              </p>
+              {activeSession.guestEmail && (
+                <p className="mt-1 text-sm text-zinc-500">
+                  Email: {activeSession.guestEmail}
+                </p>
+              )}
+              <p className="mt-1 text-sm text-zinc-500">
+                Requested at {new Date(activeSession.startedAt).toLocaleTimeString()}
+              </p>
+              <div className="mt-4">
+                <ConfirmRejectButtons tableId={table.id} sessionId={activeSession.id} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-950">
+              <p className="mb-1 text-sm font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                Occupied
+              </p>
+              {activeSession.guestName && <p className="text-lg">{activeSession.guestName}</p>}
+              <p className="mt-1 text-sm text-zinc-500">
+                Seated at {new Date(activeSession.startedAt).toLocaleTimeString()}
+              </p>
+              <div className="mt-4">
+                <CloseSessionButton tableId={table.id} sessionId={activeSession.id} />
+              </div>
+            </div>
+          )}
 
-          {activeSession.orders && activeSession.orders.length > 0 && (
+          {activeSession.orders && activeSession.orders.length > 0 && activeSession.status === 'ACTIVE' && (
             <div>
               <h2 className="mb-3 text-lg font-medium">Orders</h2>
               <div className="flex flex-col gap-3">
@@ -64,7 +88,9 @@ export default async function TableDetailPage({
             </div>
           )}
 
-          <MenuOrderSection tableId={table.id} tableSessionId={activeSession.id} />
+          {activeSession.status === 'ACTIVE' && (
+            <MenuOrderSection tableId={table.id} tableSessionId={activeSession.id} />
+          )}
         </div>
       ) : (
         <SeatGuestsForm tableId={table.id} />

@@ -27,8 +27,9 @@ export class TablesService {
       orderBy: { number: 'asc' },
       include: {
         sessions: {
-          where: { status: 'ACTIVE' },
+          where: { status: { in: ['PENDING', 'ACTIVE'] } },
           take: 1,
+          orderBy: { startedAt: 'desc' },
         },
       },
     });
@@ -56,8 +57,9 @@ export class TablesService {
       where: { id },
       include: {
         sessions: {
-          where: { status: 'ACTIVE' },
+          where: { status: { in: ['PENDING', 'ACTIVE'] } },
           take: 1,
+          orderBy: { startedAt: 'desc' },
           include: { orders: { include: { items: { include: { menuItem: true } } } } },
         },
       },

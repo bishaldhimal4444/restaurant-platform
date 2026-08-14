@@ -81,20 +81,22 @@ model Table {
 }
 
 model TableSession {
-  id         String        @id @default(uuid())
-  tableId    String
-  table      Table         @relation(fields: [tableId], references: [id])
-  guestName  String?
-  guestPhone String?
-  guestEmail String?
-  guestToken String?       @unique
+  id                  String        @id @default(uuid())
+  tableId             String
+  table               Table         @relation(fields: [tableId], references: [id])
+  guestName           String?
+  guestPhone          String?
+  guestEmail          String?
+  guestToken          String?
   guestTokenExpiresAt DateTime?
-  status     SessionStatus @default(ACTIVE)
-  startedAt  DateTime      @default(now())
-  endedAt    DateTime?
+  status              SessionStatus @default(ACTIVE)
+  startedAt           DateTime      @default(now())
+  endedAt             DateTime?
 
   orders Order[]
   bill   Bill?
+
+  @@index([guestToken])
 }
 
 model MenuItem {

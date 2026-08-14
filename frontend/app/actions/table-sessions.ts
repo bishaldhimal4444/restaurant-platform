@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getSessionToken } from '../../lib/auth/session';
-import { openSession, closeSession } from '../../lib/api/table-sessions';
+import { openSession, closeSession, confirmSession, rejectSession } from '../../lib/api/table-sessions';
 import { ApiError } from '../../lib/api/client';
 
 function extractMessage(err: unknown, fallback: string): string {
@@ -22,17 +22,14 @@ export async function openSessionAction(
   if (!token) {
     redirect('/login');
   }
-
   const guestName = formData.get('guestName')?.toString() || undefined;
   const guestPhone = formData.get('guestPhone')?.toString() || undefined;
   const guestEmail = formData.get('guestEmail')?.toString() || undefined;
-
   try {
     await openSession(token, tableId, { guestName, guestPhone, guestEmail });
   } catch (err) {
     return { error: extractMessage(err, 'Failed to seat guests') };
   }
-
   revalidatePath(`/tables/${tableId}`);
   redirect(`/tables/${tableId}`);
 }
@@ -42,8 +39,28 @@ export async function closeSessionAction(tableId: string, sessionId: string) {
   if (!token) {
     redirect('/login');
   }
-
   await closeSession(token, sessionId);
   revalidatePath(`/tables/${tableId}`);
   redirect('/');
+}
+
+export async function confirmSessionAction(tableId: string, sessionId: string) {
+  const token = await getSessionToken();
+  if (!token) {
+    redirect('/login');
+  }
+  await confirmSession(token, sessionId);
+  revalidatePath(`/tables/${tableId}`);
+  revalidatePath('/tables');
+}
+
+export async function rejectSessionAction(tableId: string, sessionId: string) {
+  const token = await getSessionToken();
+  if (!token) {
+    redirect('/login');
+  }
+  await rejectSession(token, sessionId);
+  revalidatePath(`/tables/${tableId}`);
+  revalidatePath('/tables');
+  redirect('/tables');
 }

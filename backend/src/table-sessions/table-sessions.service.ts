@@ -126,8 +126,9 @@ export class TableSessionsService {
   }
 
   async findByGuestToken(guestToken: string) {
-    const session = await this.prisma.tableSession.findUnique({
-      where: { guestToken },
+    const session = await this.prisma.tableSession.findFirst({
+      where: { guestToken, status: { in: ['PENDING', 'ACTIVE'] } },
+      orderBy: { startedAt: 'desc' },
       include: { orders: { include: { items: { include: { menuItem: true } } } }, bill: true, table: true },
     });
     if (!session) {

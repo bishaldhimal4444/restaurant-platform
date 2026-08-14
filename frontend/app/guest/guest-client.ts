@@ -18,7 +18,6 @@ async function guestFetch<T>(path: string, options: RequestInit = {}): Promise<T
       ...options.headers,
     },
   });
-
   if (!res.ok) {
     let body: unknown = null;
     try {
@@ -28,7 +27,6 @@ async function guestFetch<T>(path: string, options: RequestInit = {}): Promise<T
     }
     throw new GuestApiError(res.status, body);
   }
-
   return res.json() as Promise<T>;
 }
 
@@ -40,7 +38,7 @@ export interface PublicTable {
 }
 
 export function listPublicTables() {
-  return guestFetch<PublicTable[]>('/api/public/tables');
+  return guestFetch<PublicTable[]>(`/api/public/tables`);
 }
 
 export interface CheckInPayload {
@@ -63,4 +61,8 @@ export function requestCheckIn(tableId: string, payload: CheckInPayload) {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export function getGuestSession(sessionId: string) {
+  return guestFetch<GuestSession>(`/api/guest/table-sessions/${sessionId}`);
 }

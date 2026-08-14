@@ -1,13 +1,7 @@
 node_modules
 .next
-out
-build
 .git
-.gitignore
-Dockerfile
-.dockerignore
 *.log
 .DS_Store
-.env*
-.vercel
-*.tsbuildinfo
+coverage
+*.md

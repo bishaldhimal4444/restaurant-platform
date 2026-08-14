@@ -53,15 +53,13 @@ export default async function TablesPage() {
   if (!token) {
     redirect('/login');
   }
-
   const tables = await listTables(token);
   const mainTables = tables.filter((t) => getSection(t.number) === 'MAIN');
   const rooftopTables = tables.filter((t) => getSection(t.number) === 'ROOFTOP');
   const otherTables = tables.filter((t) => getSection(t.number) === null);
-
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-12">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Tables</h1>
         <Link
           href="/tables/new"
@@ -70,7 +68,6 @@ export default async function TablesPage() {
           Add table
         </Link>
       </div>
-
       {tables.length === 0 ? (
         <p className="mt-8 text-zinc-500">No tables yet. Add your first one.</p>
       ) : (

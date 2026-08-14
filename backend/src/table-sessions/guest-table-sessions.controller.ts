@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Param, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { TableSessionsService } from './table-sessions.service';
 import { CreateTableSessionDto } from './dto/create-table-session.dto';
 import { GuestAuthGuard } from '../guest-auth/guest-auth.guard';
@@ -17,5 +17,16 @@ export class GuestTableSessionsController {
   ) {
     const guestToken = (req as any).guestToken as string;
     return this.tableSessionsService.open(tableId, dto, guestToken);
+  }
+
+  @Get('table-sessions/:sessionId')
+  async findOne(
+    @Param('sessionId') sessionId: string,
+    @Req() req: Request,
+  ) {
+    const guestToken = (req as any).guestToken as string;
+    const session = await this.tableSessionsService.findOneRaw(sessionId);
+    this.tableSessionsService.assertGuestOwnsSession(session, guestToken);
+    return session;
   }
 }
