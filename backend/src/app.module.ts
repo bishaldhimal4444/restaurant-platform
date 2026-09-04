@@ -13,6 +13,8 @@ import { MenuItemsModule } from './menu-items/menu-items.module';
 import { OrdersModule } from './orders/orders.module';
 import { BillsModule } from './bills/bills.module';
 import { GuestAuthModule } from './guest-auth/guest-auth.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { CustomersModule } from './customers/customers.module';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { GuestAuthModule } from './guest-auth/guest-auth.module';
     OrdersModule,
     BillsModule,
     GuestAuthModule,
+    DashboardModule,
+    CustomersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

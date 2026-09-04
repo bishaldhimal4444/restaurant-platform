@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const COOKIE_NAME = 'session_token';
-const PROTECTED_PREFIXES = ['/tables', '/menu-items', '/orders'];
+const PROTECTED_PREFIXES = ['/tables', '/menu-items', '/orders', '/customers', '/dashboard'];
 const PUBLIC_PREFIXES = ['/guest'];
 
 export function proxy(req: NextRequest) {
@@ -28,5 +28,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/tables/:path*', '/menu-items/:path*', '/orders/:path*'],
+  matcher: ['/tables/:path*', '/menu-items/:path*', '/orders/:path*', '/customers/:path*', '/dashboard/:path*'],
 };

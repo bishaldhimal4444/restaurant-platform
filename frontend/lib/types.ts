@@ -1,6 +1,6 @@
 export type Role = 'ADMIN' | 'OWNER';
 
-export type TableStatus = 'AVAILABLE' | 'OCCUPIED';
+export type TableStatus = 'AVAILABLE' | 'PENDING' | 'OCCUPIED';
 
 export type SessionStatus = 'PENDING' | 'ACTIVE' | 'BILLED' | 'CLOSED';
 
@@ -42,6 +42,20 @@ export interface Table {
   capacity: number;
   status: TableStatus;
   restaurantId: string;
+  sessions?: TableSession[];
+}
+
+export interface Customer {
+  id: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  notes: string | null;
+  visitCount: number;
+  totalSpent: number;
+  createdAt: string;
+  updatedAt: string;
+  sessions?: TableSession[];
 }
 
 export interface TableSession {
@@ -55,9 +69,11 @@ export interface TableSession {
   status: SessionStatus;
   startedAt: string;
   endedAt: string | null;
+  customerId?: string | null;
   table?: Table;
   orders?: Order[];
   bill?: Bill;
+  customer?: Customer;
 }
 
 export interface MenuSection {
@@ -136,4 +152,17 @@ export interface Bill {
   status: BillStatus;
   createdAt: string;
   paidAt: string | null;
+}
+
+export interface DailyDashboard {
+  date: string;
+  ordersCount: number;
+  ordersByStatus: Record<string, number>;
+  newCustomers: number;
+  activeTables: number;
+  pendingRequests: number;
+  salesTotal: number;
+  salesByMethod: Record<string, number>;
+  billsPaidCount: number;
+  topItems: { menuItemId: string; name: string; quantity: number }[];
 }

@@ -11,6 +11,20 @@ function getSection(tableNumber: number): 'MAIN' | 'ROOFTOP' | null {
 }
 
 function TableCard({ table }: { table: Table }) {
+  const pendingSession = table.sessions?.find((s) => s.status === 'PENDING');
+
+  const statusLabel =
+    table.status === 'PENDING' && pendingSession
+      ? `${pendingSession.guestName ?? 'Guest'} requesting table`
+      : table.status;
+
+  const statusColor =
+    table.status === 'AVAILABLE'
+      ? 'text-emerald-600'
+      : table.status === 'PENDING'
+      ? 'text-amber-600'
+      : 'text-orange-600';
+
   return (
     <Link
       href={`/tables/${table.id}`}
@@ -18,12 +32,8 @@ function TableCard({ table }: { table: Table }) {
     >
       <h2 className="text-lg font-semibold">Table {table.number}</h2>
       <p className="mt-1 text-sm text-zinc-500">Seats {table.capacity}</p>
-      <p
-        className={`mt-2 text-xs font-medium uppercase tracking-wide ${
-          table.status === 'AVAILABLE' ? 'text-emerald-600' : 'text-amber-600'
-        }`}
-      >
-        {table.status}
+      <p className={`mt-2 text-xs font-medium uppercase tracking-wide ${statusColor}`}>
+        {statusLabel}
       </p>
     </Link>
   );

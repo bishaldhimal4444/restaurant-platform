@@ -12,22 +12,39 @@ export class TableSessionsService {
     if (!table) {
       throw new NotFoundException('Table not found');
     }
-    if (table.status === 'OCCUPIED') {
-      throw new ConflictException('This table already has an active session');
+    if (table.status !== 'AVAILABLE') {
+      throw new ConflictException('This table already has an active or pending session');
     }
 
     const session = await this.prisma.$transaction(async (tx) => {
+      let customerId: string | undefined;
+      if (dto.guestPhone) {
+        const customer = await tx.customer.upsert({
+          where: { phone: dto.guestPhone },
+          create: {
+            phone: dto.guestPhone,
+            name: dto.guestName,
+            email: dto.guestEmail,
+          },
+          update: {
+            ...(dto.guestName ? { name: dto.guestName } : {}),
+            ...(dto.guestEmail ? { email: dto.guestEmail } : {}),
+          },
+        });
+        customerId = customer.id;
+      }
+
       const created = await tx.tableSession.create({
         data: {
           tableId,
           ...dto,
           guestToken,
           status: 'PENDING',
+          ...(customerId ? { customerId } : {}),
         },
       });
-      // Reserve the table immediately so it can't be double-booked
-      // while the check-in is awaiting staff confirmation.
-      await tx.table.update({ where: { id: tableId }, data: { status: 'OCCUPIED' } });
+      // Mark the table as pending confirmation — not occupied yet.
+      await tx.table.update({ where: { id: tableId }, data: { status: 'PENDING' } });
       return created;
     });
 
@@ -43,9 +60,19 @@ export class TableSessionsService {
       throw new ConflictException('This session is not awaiting confirmation');
     }
 
-    const updated = await this.prisma.tableSession.update({
-      where: { id },
-      data: { status: 'ACTIVE' },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const confirmed = await tx.tableSession.update({
+        where: { id },
+        data: { status: 'ACTIVE' },
+      });
+      await tx.table.update({ where: { id: session.tableId }, data: { status: 'OCCUPIED' } });
+      if (session.customerId) {
+        await tx.customer.update({
+          where: { id: session.customerId },
+          data: { visitCount: { increment: 1 } },
+        });
+      }
+      return confirmed;
     });
 
     return serializeDecimals(updated);
@@ -77,6 +104,14 @@ export class TableSessionsService {
       where: { status: 'PENDING' },
       include: { table: true },
       orderBy: { startedAt: 'asc' },
+    });
+    return serializeDecimals(sessions);
+  }
+
+  async findAll() {
+    const sessions = await this.prisma.tableSession.findMany({
+      include: { table: true },
+      orderBy: { startedAt: 'desc' },
     });
     return serializeDecimals(sessions);
   }

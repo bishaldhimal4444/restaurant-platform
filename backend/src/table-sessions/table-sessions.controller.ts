@@ -16,6 +16,11 @@ export class TableSessionsController {
     return this.tableSessionsService.findPending();
   }
 
+  @Get('table-sessions')
+  findAll() {
+    return this.tableSessionsService.findAll();
+  }
+
   @Get('tables/:tableId/active-session')
   findActiveForTable(@Param('tableId') tableId: string) {
     return this.tableSessionsService.findActiveForTable(tableId);

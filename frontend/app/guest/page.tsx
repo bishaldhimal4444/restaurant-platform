@@ -151,6 +151,15 @@ function TableSection({
 
 export default function GuestLandingPage() {
   const [screen, setScreen] = useState<Screen>('tables');
+  const [sessionEndedNotice, setSessionEndedNotice] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session') === 'ended') {
+      setSessionEndedNotice(true);
+      window.history.replaceState({}, '', '/guest');
+    }
+  }, []);
   const [tables, setTables] = useState<PublicTable[]>([]);
   const [loadingTables, setLoadingTables] = useState(true);
   const [tablesError, setTablesError] = useState<string | null>(null);
@@ -293,6 +302,15 @@ export default function GuestLandingPage() {
         <h2 className="mt-12 mb-1 text-xl" style={{ color: PAPER, fontFamily: 'var(--font-accent)', fontStyle: 'italic', fontWeight: 600 }}>
           Reserve your table
         </h2>
+
+        {sessionEndedNotice && (
+          <div
+            className="mt-6 rounded-xl px-4 py-3 text-sm"
+            style={{ background: 'rgba(255,62,128,0.12)', border: '1px solid rgba(255,62,128,0.35)', color: PAPER }}
+          >
+            Your table session has been closed by staff. Feel free to check in again if you&apos;re still here.
+          </div>
+        )}
 
         {loadingTables && <p style={{ color: 'rgba(255,255,255,0.5)' }}>Loading tables…</p>}
         {tablesError && <p style={{ color: PINK }}>{tablesError}</p>}

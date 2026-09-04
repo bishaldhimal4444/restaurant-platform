@@ -28,6 +28,9 @@ export function Header() {
         <nav className="flex items-center gap-4 text-sm">
           {isLoading ? null : isAuthenticated ? (
             <>
+              <Link href="/dashboard" className="text-zinc-300 hover:text-white hover:underline">
+                Dashboard
+              </Link>
               <Link href="/tables" className="text-zinc-300 hover:text-white hover:underline">
                 Tables
               </Link>
@@ -36,6 +39,9 @@ export function Header() {
               </Link>
               <Link href="/orders" className="text-zinc-300 hover:text-white hover:underline">
                 Kitchen
+              </Link>
+              <Link href="/customers" className="text-zinc-300 hover:text-white hover:underline">
+                Customers
               </Link>
               <span className="text-zinc-500">{user?.email}</span>
               <button

@@ -11,10 +11,12 @@ datasource db {
 enum Role {
   ADMIN
   OWNER
+  STAFF
 }
 
 enum TableStatus {
   AVAILABLE
+  PENDING
   OCCUPIED
 }
 
@@ -93,10 +95,27 @@ model TableSession {
   startedAt           DateTime      @default(now())
   endedAt             DateTime?
 
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
   orders Order[]
   bill   Bill?
 
   @@index([guestToken])
+}
+
+model Customer {
+  id         String   @id @default(uuid())
+  phone      String   @unique
+  name       String?
+  email      String?
+  notes      String?
+  visitCount Int      @default(0)
+  totalSpent Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sessions TableSession[]
 }
 
 model MenuItem {

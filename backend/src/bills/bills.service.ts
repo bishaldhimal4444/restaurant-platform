@@ -92,6 +92,13 @@ export class BillsService {
         data: { status: 'AVAILABLE' },
       });
 
+      if (session.customerId) {
+        await tx.customer.update({
+          where: { id: session.customerId },
+          data: { totalSpent: { increment: paid.totalAmount } },
+        });
+      }
+
       return paid;
     });
 

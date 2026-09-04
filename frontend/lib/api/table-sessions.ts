@@ -32,6 +32,10 @@ export function getPendingSessions(token: string) {
   return apiFetch<(TableSession & { table: Table })[]>(`/table-sessions/pending`, { token });
 }
 
+export function listAllSessions(token: string) {
+  return apiFetch<(TableSession & { table: Table })[]>(`/table-sessions`, { token });
+}
+
 export function confirmSession(token: string, id: string) {
   return apiFetch<TableSession>(`/table-sessions/${id}/confirm`, {
     method: 'POST',
