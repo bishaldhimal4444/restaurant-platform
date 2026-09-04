@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { GREEN, PAPER, PAPER_DIM, PINK } from '../../theme';
 
 interface PageProps {
   params: Promise<{ sessionId: string }>;
@@ -15,19 +16,25 @@ export default async function GuestSessionPage({ params, searchParams }: PagePro
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-md text-center">
-          <div className="mb-6 rounded-full bg-green-100 p-4 mx-auto w-fit dark:bg-green-900/30">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-12 w-12 text-green-600 dark:text-green-400">
+          <div
+            className="mb-6 mx-auto flex h-20 w-20 items-center justify-center rounded-full"
+            style={{ background: 'rgba(46,204,113,0.15)' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke={GREEN} className="h-10 w-10">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-semibold">Order Placed!</h1>
-          <p className="mt-2 text-zinc-500">
+          <h1 className="text-3xl" style={{ color: PAPER, fontFamily: 'var(--font-accent)', fontStyle: 'italic', fontWeight: 600 }}>
+            Order Placed!
+          </h1>
+          <p className="mt-3 text-[15px]" style={{ color: PAPER_DIM }}>
             Your order has been sent to the kitchen. You can continue browsing the menu or wait for your food.
           </p>
-          <div className="mt-6 flex gap-3 justify-center">
+          <div className="mt-8 flex gap-3 justify-center">
             <a
               href={`/guest/session/${sessionId}/menu`}
-              className="rounded-full bg-zinc-900 px-6 py-2 font-medium text-white hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+              className="rounded-full px-6 py-2.5 text-sm font-semibold"
+              style={{ background: PINK, color: '#1B1330' }}
             >
               Continue Ordering
             </a>

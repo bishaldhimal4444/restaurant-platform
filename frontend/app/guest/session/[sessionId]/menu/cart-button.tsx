@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCart } from '../../../hooks/use-cart';
+import { PINK } from '../../../theme';
 
 interface CartButtonProps {
   sessionId: string;
@@ -17,7 +18,8 @@ export function CartButton({ sessionId }: CartButtonProps) {
   return (
     <Link
       href={`/guest/session/${sessionId}/cart`}
-      className="flex items-center gap-2 rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-lg hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+      className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-lg transition hover:-translate-y-0.5"
+      style={{ background: PINK, color: '#1B1330' }}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +36,7 @@ export function CartButton({ sessionId }: CartButtonProps) {
         />
       </svg>
       <span>{itemCount} items</span>
-      <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs dark:bg-black/20">
+      <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'rgba(27,19,48,0.2)' }}>
         Rs. {total.toFixed(2)}
       </span>
     </Link>

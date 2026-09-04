@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCart } from '../../../hooks/use-cart';
+import { GREEN, PINK } from '../../../theme';
 
 interface AddToCartButtonProps {
   item: {
@@ -31,7 +32,8 @@ export function AddToCartButton({ item }: AddToCartButtonProps) {
     return (
       <button
         disabled
-        className="rounded-full bg-zinc-200 px-4 py-1.5 text-sm text-zinc-400 dark:bg-zinc-700"
+        className="rounded-full px-4 py-1.5 text-sm"
+        style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.35)' }}
       >
         Add
       </button>
@@ -41,17 +43,20 @@ export function AddToCartButton({ item }: AddToCartButtonProps) {
   return (
     <div className="flex items-center gap-2">
       {localQuantity > 0 && (
-        <span className="rounded-full bg-zinc-900 px-2 py-0.5 text-xs font-medium text-white dark:bg-white dark:text-black">
+        <span
+          className="rounded-full px-2 py-0.5 text-xs font-medium"
+          style={{ background: 'rgba(255,255,255,0.12)', color: '#FBF1E6' }}
+        >
           {localQuantity} in cart
         </span>
       )}
       <button
         onClick={handleAdd}
-        className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-          showAdded
-            ? 'bg-green-500 text-white'
-            : 'bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200'
-        }`}
+        className="rounded-full px-4 py-1.5 text-sm font-semibold transition-all"
+        style={{
+          background: showAdded ? GREEN : PINK,
+          color: '#1B1330',
+        }}
       >
         {showAdded ? 'Added!' : localQuantity > 0 ? 'Add More' : 'Add to Cart'}
       </button>
