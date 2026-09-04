@@ -90,8 +90,5 @@
     "@prisma/engines@7.9.1": true,
     "unrs-resolver@1.12.2": true,
     "bcrypt@6.0.0": true
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   }
 }
