@@ -68,6 +68,7 @@ model Restaurant {
 
   tables    Table[]
   menuItems MenuItem[]
+  categories Category[]
 }
 
 model Table {
@@ -118,18 +119,42 @@ model Customer {
   sessions TableSession[]
 }
 
-model MenuItem {
+model Category {
   id           String     @id @default(uuid())
   name         String
-  description  String?
-  ingredients  String?
-  price        Decimal    @db.Decimal(10, 2)
-  imageUrl     String?
-  isAvailable  Boolean    @default(true)
+  sortOrder    Int        @default(0)
   restaurantId String
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  menuItems    MenuItem[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@unique([restaurantId, name])
+}
+
+model MenuItem {
+  id              String     @id @default(uuid())
+  name            String
+  description     String?
+  ingredients     String?
+  price           Decimal    @db.Decimal(10, 2)
+  discountPrice   Decimal?   @db.Decimal(10, 2)
+  imageUrl        String?
+  isAvailable     Boolean    @default(true)
+  allergens       String?
+  calories        Int?
+  prepTimeMinutes Int?
+  vegetarian      Boolean    @default(false)
+  vegan           Boolean    @default(false)
+  spicy           Boolean    @default(false)
+  featured        Boolean    @default(false)
+  featuredOrder   Int?
+  categoryId      String?
+  category        Category?  @relation(fields: [categoryId], references: [id])
+  restaurantId    String
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id])
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   orderItems OrderItem[]
 }

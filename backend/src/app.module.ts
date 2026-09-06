@@ -15,6 +15,7 @@ import { BillsModule } from './bills/bills.module';
 import { GuestAuthModule } from './guest-auth/guest-auth.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CustomersModule } from './customers/customers.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CustomersModule } from './customers/customers.module';
     GuestAuthModule,
     DashboardModule,
     CustomersModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

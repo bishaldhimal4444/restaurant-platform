@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Patch, Delete, Param, UseGuards } from '@n
 import { MenuItemsService } from './menu-items.service';
 import { CreateMenuItemDto } from './dto/create-menu-item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu-item.dto';
+import { ReorderFeaturedDto } from './dto/reorder-featured.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -21,6 +22,14 @@ export class MenuItemsController {
   @Get()
   findAll() {
     return this.menuItemsService.findAll();
+  }
+
+  // Registered before ':id' so 'featured/reorder' isn't swallowed as an :id param.
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OWNER, Role.ADMIN)
+  @Patch('featured/reorder')
+  reorderFeatured(@Body() dto: ReorderFeaturedDto) {
+    return this.menuItemsService.reorderFeatured(dto.orderedIds);
   }
 
   @Get(':id')
